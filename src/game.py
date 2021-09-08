@@ -1,6 +1,7 @@
 from pygame import Color, Vector2
 from pygame.locals import KEYDOWN, KEYUP, K_LEFT, K_RIGHT, K_SPACE
 from src.constants import WHITE, BLACK
+from src.entities.player import Player
 
 class Game:
 
@@ -8,27 +9,32 @@ class Game:
 
     def __init__(self):
         self.entities =[]
+        self.player = Player()
+        self.entities.append(self.player)
     
     def handle_input(self, events):
         for event in events:
             if event.type == KEYDOWN:
                 if event.key == K_LEFT:
-                    print("Move Left")
+                    self.player.move_left()
                 if event.key == K_RIGHT:
-                    print("Move Right")
+                    self.player.move_right()
                 if event.key == K_SPACE:
                     print("Shoot bullet!")
             if event.type == KEYUP:
-                if event.key == K_LEFT:
-                    print("Stop moving Left")
-                if event.key == K_RIGHT:
-                    print("Stop moving Right")
+                if event.key == K_LEFT and self.player.move_direction < 0:
+                    self.player.stop_moving()
+                if event.key == K_RIGHT and self.player.move_direction > 0:
+                    self.player.stop_moving()
 
     def update(self, delta):
         # Loop through entities
         for i in range(len(self.entities) - 1, -1, -1):
             obj = self.entities[i]
             # Execute entity logic
+            obj.tick(delta, self.entities)
+
+            obj.move(delta)
 
     def render_text(self, display, font, text: str, color: Color, position: Vector2):
         surface = font.render(text, True, color)
@@ -37,4 +43,6 @@ class Game:
     def render(self, display, font):
         display.fill(BLACK)
         # loop through each entity and render it
+        for obj in self.entities:
+            obj.render(display)
         self.render_text(display, font, "Space Invaders", WHITE, (50, 50))
